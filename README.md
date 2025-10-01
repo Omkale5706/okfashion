@@ -175,13 +175,11 @@ Currently uses mock data. Integrate with:
 4. Test thoroughly
 5. Submit a pull request
 
-## License
 
-This project is licensed under the MIT License.
 
 ## Support
 
-For support, email support@okfashion.com or create an issue in the repository.
+For support, email okfashionai@gmail.com or create an issue in the repository.
 
 ---
 
