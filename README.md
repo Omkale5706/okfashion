@@ -183,5 +183,5 @@ For support, email okfashionai@gmail.com or create an issue in the repository.
 
 ---
 
-Built with ❤️ by Om Kale + help of AI tools
+Built with ❤️ by Om Kale
 
