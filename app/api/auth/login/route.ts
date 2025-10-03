@@ -21,7 +21,7 @@ const users = [
   {
     id: "3",
     email: "omkale5706@gmail.com",
-    password: "Omraje1234", // password
+    password: "2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // password
     name: "Om kale",
     isAdmin: false,
   },
