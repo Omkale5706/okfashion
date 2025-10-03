@@ -27,7 +27,7 @@ export default function AIStylistPage() {
 
       const mockAnalysis = {
         bodyShape: "hourglass",
-        faceShape: "oval",
+        faceShape: "Square",
         skinTone: "warm",
         style: "casual-chic",
         measurements: {
@@ -48,7 +48,7 @@ export default function AIStylistPage() {
   // Mock user profile for recommendations
   const userProfile = {
     bodyShape: analysisData?.bodyShape || "hourglass",
-    faceShape: analysisData?.faceShape || "oval",
+    faceShape: analysisData?.faceShape || "Square",
     skinTone: analysisData?.skinTone || "warm",
     style: analysisData?.style || "casual-chic",
     preferences: ["floral prints", "neutral colors", "comfortable fits"],
