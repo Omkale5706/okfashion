@@ -51,39 +51,7 @@ A complete full-stack web application that provides personalized fashion recomme
 - **Search & Filter**: Advanced filtering capabilities
 - **Email Integration**: Contact forms and newsletters
 
-## Getting Started
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-
-### Installation
-
-1. **Clone the repository**
-   \`\`\`bash
-   git clone <repository-url>
-   cd ok-fashion
-   \`\`\`
-
-2. **Install dependencies**
-   \`\`\`bash
-   npm install
-   \`\`\`
-
-3. **Set up environment variables**
-   Create a `.env.local` file in the root directory:
-   \`\`\`env
-   JWT_SECRET=your-super-secret-jwt-key-here
-   NEXT_PUBLIC_APP_URL=http://localhost:3000
-   \`\`\`
-
-4. **Run the development server**
-   \`\`\`bash
-   npm run dev
-   \`\`\`
-
-5. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Demo Accounts
 
@@ -131,20 +99,6 @@ ok-fashion/
 - `POST /api/contact` - Send contact message
 - `POST /api/newsletter` - Subscribe to newsletter
 
-## Deployment
-
-### Vercel (Recommended)
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Set environment variables in Vercel dashboard
-4. Deploy automatically
-
-### Other Platforms
-The app can be deployed to any platform that supports Next.js:
-- Netlify
-- Railway
-- DigitalOcean App Platform
-- AWS Amplify
 
 ## Customization
 
