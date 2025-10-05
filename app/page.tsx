@@ -7,6 +7,7 @@ import { Footer } from "@/components/ui/footer"
 import FaceDetection from "@/components/ai/FaceDetection"
 
 
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
