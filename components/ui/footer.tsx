@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Heart } from "lucide-react"
+import { Heart, Youtube, Linkedin, Instagram, Twitter } from "lucide-react"
 import { NewsletterSignup } from "@/components/ui/newsletter-signup"
 
 export function Footer() {
@@ -14,6 +14,21 @@ export function Footer() {
               Your AI-powered fashion stylist. Transform your style with personalized recommendations that enhance your
               natural beauty.
             </p>
+            {/* Social Links */}
+            <div className="flex items-center gap-4 mb-6">
+              <a href="https://www.youtube.com/@OKfashionai" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                <Youtube className="w-6 h-6 hover:text-red-600 transition" />
+              </a>
+              <a href="https://linkedin.com/companyok-fashion-ai" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                <Linkedin className="w-6 h-6 hover:text-blue-500 transition" />
+              </a>
+              <a href="https://www.instagram.com/okfashion.ai" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <Instagram className="w-6 h-6 hover:text-pink-500 transition" />
+              </a>
+              <a href="https://x.com/OKFashionAi" target="_blank" rel="noopener noreferrer" aria-label="X">
+                <Twitter className="w-6 h-6 hover:text-gray-400 transition" />
+              </a>
+            </div>
             <div>
               <h4 className="text-lg font-semibold mb-3">Stay Updated</h4>
               <p className="text-gray-300 text-sm mb-4">

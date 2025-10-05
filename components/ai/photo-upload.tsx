@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useRef, useCallback } from "react"
 import { Camera, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,11 +12,13 @@ interface PhotoUploadProps {
 export function PhotoUpload({ onImageUpload }: PhotoUploadProps) {
   const [dragActive, setDragActive] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
+  const [isCameraActive, setIsCameraActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isCameraActive, setIsCameraActive] = useState(false)
+  const [stream, setStream] = useState<MediaStream | null>(null)
 
+  // Handle drag and drop
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -39,6 +39,7 @@ export function PhotoUpload({ onImageUpload }: PhotoUploadProps) {
     }
   }, [])
 
+  // Handle image file selection
   const handleFile = useCallback(
     (file: File) => {
       if (file.type.startsWith("image/")) {
@@ -51,7 +52,7 @@ export function PhotoUpload({ onImageUpload }: PhotoUploadProps) {
         reader.readAsDataURL(file)
       }
     },
-    [onImageUpload],
+    [onImageUpload]
   )
 
   const handleFileInput = useCallback(
@@ -60,32 +61,41 @@ export function PhotoUpload({ onImageUpload }: PhotoUploadProps) {
         handleFile(e.target.files[0])
       }
     },
-    [handleFile],
+    [handleFile]
   )
 
+  // Camera controls
   const startCamera = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const newStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user" },
       })
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        setIsCameraActive(true)
-      }
+      setStream(newStream)
+      setIsCameraActive(true)
+      // Wait for video element to be ready before assigning srcObject
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = newStream
+          videoRef.current.play()
+        }
+      }, 100)
     } catch (error) {
       console.error("Error accessing camera:", error)
     }
   }, [])
 
   const stopCamera = useCallback(() => {
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream
+    if (stream) {
       stream.getTracks().forEach((track) => track.stop())
-      videoRef.current.srcObject = null
-      setIsCameraActive(false)
+      setStream(null)
     }
-  }, [])
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    setIsCameraActive(false)
+  }, [stream])
 
+  // Capture photo from video
   const capturePhoto = useCallback(() => {
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current
@@ -95,7 +105,7 @@ export function PhotoUpload({ onImageUpload }: PhotoUploadProps) {
 
       const ctx = canvas.getContext("2d")
       if (ctx) {
-        ctx.drawImage(video, 0, 0)
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
         const imageUrl = canvas.toDataURL("image/jpeg")
         setPreview(imageUrl)
         onImageUpload(imageUrl)
@@ -104,6 +114,7 @@ export function PhotoUpload({ onImageUpload }: PhotoUploadProps) {
     }
   }, [onImageUpload, stopCamera])
 
+  // Clear current preview
   const clearImage = useCallback(() => {
     setPreview(null)
     if (fileInputRef.current) {
@@ -127,8 +138,14 @@ export function PhotoUpload({ onImageUpload }: PhotoUploadProps) {
       ) : (
         <>
           {isCameraActive ? (
-            <Card className="relative">
-              <video ref={videoRef} autoPlay playsInline className="w-full h-64 object-cover rounded-lg" />
+            <Card className="relative flex flex-col items-center justify-center">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full h-64 object-cover rounded-lg bg-black"
+                style={{ background: "black" }}
+              />
               <canvas ref={canvasRef} className="hidden" />
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
                 <Button onClick={capturePhoto}>Capture Photo</Button>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Heart, Share2, ShoppingBag, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,13 +12,14 @@ interface OutfitRecommendationsProps {
   userImage: string | null
 }
 
-export function OutfitRecommendations({ analysisData, userImage }: OutfitRecommendationsProps) {
-  const [favorites, setFavorites] = useState<Set<number>>(new Set())
-  const [selectedOutfit, setSelectedOutfit] = useState<any>(null)
-  const [showTryOn, setShowTryOn] = useState(false)
+// Helper to get outfits based on analysisData
+function getPersonalizedOutfits(analysisData: any) {
+  if (!analysisData) return []
 
-  // Mock outfit recommendations based on analysis
-  const outfits = [
+  const { bodyShape, faceShape, skinTone, style } = analysisData
+
+  // Example: outfit pool (expand as needed)
+  const allOutfits = [
     {
       id: 1,
       name: "Casual Chic Ensemble",
@@ -27,6 +28,7 @@ export function OutfitRecommendations({ analysisData, userImage }: OutfitRecomme
       occasion: "Work/Casual",
       confidence: 95,
       image: "/casual-chic-outfit.jpg",
+      match: (ad: any) => ad.style === "casual-chic" || ad.bodyShape === "hourglass",
     },
     {
       id: 2,
@@ -36,6 +38,7 @@ export function OutfitRecommendations({ analysisData, userImage }: OutfitRecomme
       occasion: "Weekend/Casual",
       confidence: 88,
       image: "/weekend-casual-dress.jpg",
+      match: (ad: any) => ad.bodyShape === "triangle" || ad.style === "sporty",
     },
     {
       id: 3,
@@ -45,17 +48,59 @@ export function OutfitRecommendations({ analysisData, userImage }: OutfitRecomme
       occasion: "Evening/Formal",
       confidence: 92,
       image: "/elegant-evening-dress.png",
+      match: (ad: any) => ad.faceShape === "oval" || ad.style === "elegant",
+    },
+    {
+      id: 4,
+      name: "Boho Bliss",
+      items: ["Printed maxi dress", "Fringe bag", "Strappy sandals"],
+      colors: ["Coral", "Beige", "White"],
+      occasion: "Festival/Outdoor",
+      confidence: 85,
+      image: "/boho-bliss.jpg",
+      match: (ad: any) => ad.style === "boho",
+    },
+    {
+      id: 5,
+      name: "Power Suit",
+      items: ["Tailored blazer", "Tapered pants", "Silk cami", "Pointed heels"],
+      colors: ["Charcoal", "Ivory", "Blush"],
+      occasion: "Business/Formal",
+      confidence: 90,
+      image: "/power-suit.jpg",
+      match: (ad: any) => ad.bodyShape === "rectangle" || ad.style === "business",
     },
   ]
 
+  const personalized = allOutfits
+    .filter((outfit) => outfit.match(analysisData))
+    .sort((a, b) => b.confidence - a.confidence)
+
+  if (personalized.length < 3) {
+    const unique = new Set(personalized.map((o) => o.id))
+    const filler = allOutfits.filter((o) => !unique.has(o.id)).slice(0, 3 - personalized.length)
+    return [...personalized, ...filler]
+  }
+  return personalized
+}
+
+export function OutfitRecommendations({ analysisData, userImage }: OutfitRecommendationsProps) {
+  const [favorites, setFavorites] = useState<Set<number>>(new Set())
+  const [selectedOutfit, setSelectedOutfit] = useState<any>(null)
+  const [showTryOn, setShowTryOn] = useState(false)
+
+  const outfits = useMemo(() => getPersonalizedOutfits(analysisData), [analysisData])
+
   const toggleFavorite = (outfitId: number) => {
-    const newFavorites = new Set(favorites)
-    if (newFavorites.has(outfitId)) {
-      newFavorites.delete(outfitId)
-    } else {
-      newFavorites.add(outfitId)
-    }
-    setFavorites(newFavorites)
+    setFavorites((old) => {
+      const newFavorites = new Set(old)
+      if (newFavorites.has(outfitId)) {
+        newFavorites.delete(outfitId)
+      } else {
+        newFavorites.add(outfitId)
+      }
+      return newFavorites
+    })
   }
 
   const handleTryOn = (outfit: any) => {
@@ -79,12 +124,20 @@ export function OutfitRecommendations({ analysisData, userImage }: OutfitRecomme
     }
   }
 
+  if (!analysisData) {
+    return (
+      <div className="text-center text-muted-foreground py-6">
+        Upload a photo and complete the analysis to see your personalized outfits!
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-2xl font-bold mb-2">Your Personalized Outfits</h3>
         <p className="text-muted-foreground">
-          Based on your {analysisData.bodyShape} body shape and {analysisData.style} style
+          Based on your {analysisData.bodyShape} body shape, {analysisData.faceShape} face, and {analysisData.style} style
         </p>
       </div>
 

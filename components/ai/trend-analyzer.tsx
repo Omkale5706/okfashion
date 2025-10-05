@@ -17,7 +17,6 @@ export function TrendAnalyzer() {
   const fetchTrends = async () => {
     setIsLoading(true)
 
-    // Simulate API call to fashion trend services
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     const mockTrends = [
@@ -152,7 +151,6 @@ export function TrendAnalyzer() {
         ))}
       </div>
 
-      {/* Trend Insights */}
       <Card>
         <CardHeader>
           <CardTitle>Trend Insights</CardTitle>
@@ -160,15 +158,19 @@ export function TrendAnalyzer() {
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">4</div>
+              <div className="text-3xl font-bold text-primary mb-2">{trends.length}</div>
               <p className="text-sm text-muted-foreground">Active Trends</p>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-500 mb-2">+52%</div>
+              <div className="text-3xl font-bold text-green-500 mb-2">
+                +{Math.round(trends.reduce((acc, t) => acc + t.growth, 0) / trends.length)}%
+              </div>
               <p className="text-sm text-muted-foreground">Average Growth</p>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-500 mb-2">76%</div>
+              <div className="text-3xl font-bold text-blue-500 mb-2">
+                {Math.round(trends.reduce((acc, t) => acc + t.popularity, 0) / trends.length)}%
+              </div>
               <p className="text-sm text-muted-foreground">Match Rate</p>
             </div>
           </div>

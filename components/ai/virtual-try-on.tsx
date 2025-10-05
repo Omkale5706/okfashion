@@ -33,16 +33,14 @@ export function VirtualTryOn({ userImage, outfit, isOpen, onClose }: VirtualTryO
     if (isOpen && userImage && outfit.image) {
       processVirtualTryOn()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userImage, outfit.image])
 
   const processVirtualTryOn = async () => {
     setIsProcessing(true)
 
-    // Simulate AI processing time
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    // In production, this would call your AI service for actual virtual try-on
-    // For now, we'll create a simple overlay effect
     if (canvasRef.current) {
       const canvas = canvasRef.current
       const ctx = canvas.getContext("2d")
@@ -51,14 +49,14 @@ export function VirtualTryOn({ userImage, outfit, isOpen, onClose }: VirtualTryO
         canvas.width = 400
         canvas.height = 600
 
-        // Load and draw user image
-        const userImg = new Image()
+        const userImg = new window.Image()
         userImg.crossOrigin = "anonymous"
         userImg.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
+          ctx.globalAlpha = 1
           ctx.drawImage(userImg, 0, 0, canvas.width, canvas.height)
 
-          // Load and overlay outfit
-          const outfitImg = new Image()
+          const outfitImg = new window.Image()
           outfitImg.crossOrigin = "anonymous"
           outfitImg.onload = () => {
             ctx.globalAlpha = opacity[0] / 100
@@ -69,7 +67,6 @@ export function VirtualTryOn({ userImage, outfit, isOpen, onClose }: VirtualTryO
               canvas.width * (scale[0] / 100),
               canvas.height * (scale[0] / 100),
             )
-
             setProcessedImage(canvas.toDataURL())
             setIsProcessing(false)
           }
@@ -127,13 +124,11 @@ export function VirtualTryOn({ userImage, outfit, isOpen, onClose }: VirtualTryO
         </DialogHeader>
 
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Controls Panel */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Adjustment Controls</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Opacity Control */}
               <div>
                 <label className="text-sm font-medium mb-2 block">Outfit Opacity: {opacity[0]}%</label>
                 <Slider
@@ -148,8 +143,6 @@ export function VirtualTryOn({ userImage, outfit, isOpen, onClose }: VirtualTryO
                   className="w-full"
                 />
               </div>
-
-              {/* Scale Control */}
               <div>
                 <label className="text-sm font-medium mb-2 block">Outfit Size: {scale[0]}%</label>
                 <Slider
@@ -164,55 +157,15 @@ export function VirtualTryOn({ userImage, outfit, isOpen, onClose }: VirtualTryO
                   className="w-full"
                 />
               </div>
-
-              {/* Position Controls */}
               <div>
                 <label className="text-sm font-medium mb-2 block">Position</label>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setPosition((prev) => ({ ...prev, y: prev.y - 10 }))
-                      processVirtualTryOn()
-                    }}
-                  >
-                    Move Up
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setPosition((prev) => ({ ...prev, y: prev.y + 10 }))
-                      processVirtualTryOn()
-                    }}
-                  >
-                    Move Down
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setPosition((prev) => ({ ...prev, x: prev.x - 10 }))
-                      processVirtualTryOn()
-                    }}
-                  >
-                    Move Left
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setPosition((prev) => ({ ...prev, x: prev.x + 10 }))
-                      processVirtualTryOn()
-                    }}
-                  >
-                    Move Right
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => { setPosition((prev) => ({ ...prev, y: prev.y - 10 })); processVirtualTryOn() }}>Move Up</Button>
+                  <Button variant="outline" size="sm" onClick={() => { setPosition((prev) => ({ ...prev, y: prev.y + 10 })); processVirtualTryOn() }}>Move Down</Button>
+                  <Button variant="outline" size="sm" onClick={() => { setPosition((prev) => ({ ...prev, x: prev.x - 10 })); processVirtualTryOn() }}>Move Left</Button>
+                  <Button variant="outline" size="sm" onClick={() => { setPosition((prev) => ({ ...prev, x: prev.x + 10 })); processVirtualTryOn() }}>Move Right</Button>
                 </div>
               </div>
-
-              {/* Action Buttons */}
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleReset} className="flex-1 bg-transparent">
                   <RotateCcw className="h-4 w-4 mr-2" />
@@ -223,41 +176,27 @@ export function VirtualTryOn({ userImage, outfit, isOpen, onClose }: VirtualTryO
                   Download
                 </Button>
               </div>
-
-              <Button
-                variant="outline"
-                onClick={handleShare}
-                className="w-full bg-transparent"
-                disabled={!navigator.share}
-              >
+              <Button variant="outline" onClick={handleShare} className="w-full bg-transparent" disabled={!navigator.share}>
                 <Share2 className="h-4 w-4 mr-2" />
                 Share Result
               </Button>
-
-              {/* Outfit Details */}
               <Card>
                 <CardContent className="p-4">
                   <h4 className="font-medium mb-2">Outfit Details</h4>
                   <div className="space-y-2">
                     {outfit.items.map((item, index) => (
-                      <div key={index} className="text-sm text-muted-foreground">
-                        • {item}
-                      </div>
+                      <div key={index} className="text-sm text-muted-foreground">• {item}</div>
                     ))}
                   </div>
                   <div className="flex gap-1 mt-3">
                     {outfit.colors.map((color, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {color}
-                      </Badge>
+                      <Badge key={index} variant="secondary" className="text-xs">{color}</Badge>
                     ))}
                   </div>
                 </CardContent>
               </Card>
             </CardContent>
           </Card>
-
-          {/* Preview Panel */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Virtual Try-On Preview</CardTitle>
@@ -273,20 +212,8 @@ export function VirtualTryOn({ userImage, outfit, isOpen, onClose }: VirtualTryO
                   </div>
                 ) : processedImage ? (
                   <div className="relative">
-                    <img
-                      src={processedImage || "/placeholder.svg"}
-                      alt="Virtual try-on result"
-                      className="w-full h-96 object-cover rounded-lg"
-                    />
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={() => {
-                        // Open in fullscreen or larger view
-                        window.open(processedImage, "_blank")
-                      }}
-                    >
+                    <img src={processedImage || "/placeholder.svg"} alt="Virtual try-on result" className="w-full h-96 object-cover rounded-lg" />
+                    <Button variant="secondary" size="sm" className="absolute top-2 right-2" onClick={() => { window.open(processedImage, "_blank") }}>
                       <Maximize2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -295,30 +222,19 @@ export function VirtualTryOn({ userImage, outfit, isOpen, onClose }: VirtualTryO
                     <p className="text-muted-foreground">Loading preview...</p>
                   </div>
                 )}
-
                 <canvas ref={canvasRef} className="hidden" />
               </div>
-
-              {/* Comparison View */}
               {processedImage && (
                 <div className="mt-4">
                   <h4 className="font-medium mb-2">Before & After</h4>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Original</p>
-                      <img
-                        src={userImage || "/placeholder.svg"}
-                        alt="Original"
-                        className="w-full h-32 object-cover rounded"
-                      />
+                      <img src={userImage || "/placeholder.svg"} alt="Original" className="w-full h-32 object-cover rounded" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">With Outfit</p>
-                      <img
-                        src={processedImage || "/placeholder.svg"}
-                        alt="With outfit"
-                        className="w-full h-32 object-cover rounded"
-                      />
+                      <img src={processedImage || "/placeholder.svg"} alt="With outfit" className="w-full h-32 object-cover rounded" />
                     </div>
                   </div>
                 </div>

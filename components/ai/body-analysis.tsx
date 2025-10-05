@@ -20,6 +20,7 @@ export function BodyAnalysis({ imageUrl, analysisData, isAnalyzing, onLandmarksD
 
   useEffect(() => {
     let img: HTMLImageElement | null = null
+    let timeoutId: any
 
     async function detectLandmarks() {
       if (!imageUrl || isAnalyzing) return
@@ -64,11 +65,16 @@ export function BodyAnalysis({ imageUrl, analysisData, isAnalyzing, onLandmarksD
         } else {
           setLandmarks(null)
         }
-        // Always call the callback, even if no face found
         if (onLandmarksDetected) onLandmarksDetected(detected)
+        clearTimeout(timeoutId)
       })
 
       await faceMeshRef.current.send({ image: img })
+
+      // Failsafe: after 8 seconds, trigger callback to stop spinner
+      timeoutId = setTimeout(() => {
+        if (isAnalyzing && onLandmarksDetected) onLandmarksDetected(null)
+      }, 8000)
     }
 
     detectLandmarks()
@@ -80,6 +86,7 @@ export function BodyAnalysis({ imageUrl, analysisData, isAnalyzing, onLandmarksD
         faceMeshRef.current = null
       }
       img = null
+      clearTimeout(timeoutId)
     }
   }, [imageUrl, isAnalyzing, onLandmarksDetected])
 

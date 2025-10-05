@@ -26,15 +26,14 @@ export function RecommendationEngine({ userProfile }: RecommendationEngineProps)
 
   useEffect(() => {
     generateRecommendations()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile])
 
   const generateRecommendations = async () => {
     setIsLoading(true)
 
-    // Simulate AI processing
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    // Mock AI-generated recommendations based on user profile
     const mockRecommendations = [
       {
         id: 1,
@@ -261,7 +260,6 @@ export function RecommendationEngine({ userProfile }: RecommendationEngineProps)
         </TabsContent>
       </Tabs>
 
-      {/* Learning Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
