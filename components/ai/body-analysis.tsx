@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { FaceMesh } from "@mediapipe/face_mesh"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -9,32 +10,78 @@ interface BodyAnalysisProps {
   imageUrl: string | null
   analysisData: any
   isAnalyzing: boolean
+  onLandmarksDetected?: (landmarks: any) => void
 }
 
-export function BodyAnalysis({ imageUrl, analysisData, isAnalyzing }: BodyAnalysisProps) {
+export function BodyAnalysis({ imageUrl, analysisData, isAnalyzing, onLandmarksDetected }: BodyAnalysisProps) {
   const [landmarks, setLandmarks] = useState<any>(null)
+  const faceMeshRef = useRef<FaceMesh | null>(null)
+  const isClosedRef = useRef(false)
 
   useEffect(() => {
-    if (imageUrl && !isAnalyzing) {
-      // Simulate MediaPipe landmark detection
-      // In production, this would use actual MediaPipe
-      const mockLandmarks = {
-        face: [
-          { x: 0.5, y: 0.3, z: 0 }, // nose
-          { x: 0.45, y: 0.28, z: 0 }, // left eye
-          { x: 0.55, y: 0.28, z: 0 }, // right eye
-        ],
-        body: [
-          { x: 0.5, y: 0.4, z: 0 }, // neck
-          { x: 0.4, y: 0.5, z: 0 }, // left shoulder
-          { x: 0.6, y: 0.5, z: 0 }, // right shoulder
-          { x: 0.45, y: 0.7, z: 0 }, // left hip
-          { x: 0.55, y: 0.7, z: 0 }, // right hip
-        ],
+    let img: HTMLImageElement | null = null
+
+    async function detectLandmarks() {
+      if (!imageUrl || isAnalyzing) return
+
+      setLandmarks(null)
+
+      img = new window.Image()
+      img.crossOrigin = "anonymous"
+      img.src = imageUrl
+
+      await new Promise((resolve) => { img!.onload = resolve })
+
+      if (faceMeshRef.current && !isClosedRef.current) {
+        await faceMeshRef.current.close()
+        isClosedRef.current = true
+        faceMeshRef.current = null
       }
-      setLandmarks(mockLandmarks)
+
+      faceMeshRef.current = new FaceMesh({
+        locateFile: (file) =>
+          `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
+      })
+      isClosedRef.current = false
+
+      faceMeshRef.current.setOptions({
+        maxNumFaces: 1,
+        refineLandmarks: true,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+      })
+
+      faceMeshRef.current.onResults((results: any) => {
+        let detected: any = null
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+          const faceLandmarks = results.multiFaceLandmarks[0].map((point: any) => ({
+            x: point.x,
+            y: point.y,
+            z: point.z,
+          }))
+          detected = { face: faceLandmarks, body: [] }
+          setLandmarks(detected)
+        } else {
+          setLandmarks(null)
+        }
+        // Always call the callback, even if no face found
+        if (onLandmarksDetected) onLandmarksDetected(detected)
+      })
+
+      await faceMeshRef.current.send({ image: img })
     }
-  }, [imageUrl, isAnalyzing])
+
+    detectLandmarks()
+
+    return () => {
+      if (faceMeshRef.current && !isClosedRef.current) {
+        faceMeshRef.current.close()
+        isClosedRef.current = true
+        faceMeshRef.current = null
+      }
+      img = null
+    }
+  }, [imageUrl, isAnalyzing, onLandmarksDetected])
 
   if (isAnalyzing) {
     return (
@@ -56,7 +103,6 @@ export function BodyAnalysis({ imageUrl, analysisData, isAnalyzing }: BodyAnalys
 
   return (
     <div className="space-y-6">
-      {/* Analysis Results */}
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -64,21 +110,18 @@ export function BodyAnalysis({ imageUrl, analysisData, isAnalyzing }: BodyAnalys
             <Badge variant="secondary">{analysisData.bodyShape}</Badge>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4">
             <h4 className="font-medium mb-2">Face Shape</h4>
             <Badge variant="secondary">{analysisData.faceShape}</Badge>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4">
             <h4 className="font-medium mb-2">Skin Tone</h4>
             <Badge variant="secondary">{analysisData.skinTone}</Badge>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4">
             <h4 className="font-medium mb-2">Style</h4>
@@ -86,8 +129,6 @@ export function BodyAnalysis({ imageUrl, analysisData, isAnalyzing }: BodyAnalys
           </CardContent>
         </Card>
       </div>
-
-      {/* Measurements */}
       <Card>
         <CardContent className="p-4">
           <h4 className="font-medium mb-3">Body Measurements</h4>
@@ -107,15 +148,12 @@ export function BodyAnalysis({ imageUrl, analysisData, isAnalyzing }: BodyAnalys
           </div>
         </CardContent>
       </Card>
-
-      {/* Landmark Visualization */}
       {landmarks && imageUrl && (
         <Card>
           <CardContent className="p-4">
             <h4 className="font-medium mb-3">Detected Landmarks</h4>
             <div className="relative">
               <img src={imageUrl || "/placeholder.svg"} alt="Analysis" className="w-full h-48 object-cover rounded" />
-              {/* Overlay landmarks - simplified visualization */}
               <div className="absolute inset-0">
                 {landmarks.face.map((point: any, index: number) => (
                   <div
@@ -155,4 +193,3 @@ export function BodyAnalysis({ imageUrl, analysisData, isAnalyzing }: BodyAnalys
     </div>
   )
 }
-

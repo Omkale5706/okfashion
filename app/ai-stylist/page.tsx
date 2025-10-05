@@ -16,39 +16,54 @@ export default function AIStylistPage() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [analysisData, setAnalysisData] = useState<any>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [noFaceFound, setNoFaceFound] = useState(false)
+
+  const handleLandmarksDetected = useCallback((landmarks: any) => {
+    setIsAnalyzing(false)
+    if (!landmarks || !landmarks.face || landmarks.face.length === 0) {
+      setAnalysisData(null)
+      setNoFaceFound(true)
+      return
+    }
+    setNoFaceFound(false)
+    // Example analysis logic (customize as desired)
+    const getFaceShape = () => {
+      const left = landmarks.face[234]
+      const right = landmarks.face[454]
+      const chin = landmarks.face[152]
+      const forehead = landmarks.face[10]
+      if (left && right && chin && forehead) {
+        const width = Math.abs(right.x - left.x)
+        const height = Math.abs(chin.y - forehead.y)
+        if (width / height > 1.1) return "round"
+        if (width / height < 0.9) return "oval"
+        return "square"
+      }
+      return "unknown"
+    }
+    setAnalysisData({
+      bodyShape: "triangle", // TODO: Use body landmarks for real value
+      faceShape: getFaceShape(),
+      skinTone: "unknown", // TODO: Implement skin tone analysis
+      style: "sporty",
+      measurements: {
+        shoulders: "unknown",
+        waist: "unknown",
+        hips: "unknown",
+      },
+    })
+  }, [])
 
   const handleImageUpload = useCallback(async (imageUrl: string) => {
     setUploadedImage(imageUrl)
     setIsAnalyzing(true)
-
-    try {
-      // Simulate AI analysis - in production, this would call your AI service
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      const mockAnalysis = {
-        bodyShape: "hourglass",
-        faceShape: "Square",
-        skinTone: "warm",
-        style: "casual-chic",
-        measurements: {
-          shoulders: "medium",
-          waist: "defined",
-          hips: "proportional",
-        },
-      }
-
-      setAnalysisData(mockAnalysis)
-    } catch (error) {
-      console.error("Analysis failed:", error)
-    } finally {
-      setIsAnalyzing(false)
-    }
+    setAnalysisData(null)
+    setNoFaceFound(false)
   }, [])
 
-  // Mock user profile for recommendations
   const userProfile = {
     bodyShape: analysisData?.bodyShape || "hourglass",
-    faceShape: analysisData?.faceShape || "Square",
+    faceShape: analysisData?.faceShape || "oval",
     skinTone: analysisData?.skinTone || "warm",
     style: analysisData?.style || "casual-chic",
     preferences: ["floral prints", "neutral colors", "comfortable fits"],
@@ -85,7 +100,6 @@ export default function AIStylistPage() {
 
           <TabsContent value="photo-analysis" className="space-y-8">
             <div className="grid lg:grid-cols-2 gap-8">
-              {/* Photo Upload Section */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -99,7 +113,6 @@ export default function AIStylistPage() {
                 </CardContent>
               </Card>
 
-              {/* Analysis Results */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -109,8 +122,18 @@ export default function AIStylistPage() {
                   <CardDescription>Body shape, face features, and style analysis</CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {noFaceFound && (
+                    <div className="text-center text-destructive">
+                      No face detected. Please try a clearer photo.
+                    </div>
+                  )}
                   {uploadedImage ? (
-                    <BodyAnalysis imageUrl={uploadedImage} analysisData={analysisData} isAnalyzing={isAnalyzing} />
+                    <BodyAnalysis
+                      imageUrl={uploadedImage}
+                      analysisData={analysisData}
+                      isAnalyzing={isAnalyzing}
+                      onLandmarksDetected={handleLandmarksDetected}
+                    />
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       Upload a photo to see AI analysis results
@@ -120,7 +143,6 @@ export default function AIStylistPage() {
               </Card>
             </div>
 
-            {/* Outfit Recommendations */}
             {analysisData && (
               <div className="mt-8">
                 <Card>
@@ -153,4 +175,3 @@ export default function AIStylistPage() {
     </div>
   )
 }
-
